@@ -1,26 +1,71 @@
 import urllib3
 import json
+import pygame
+
+from Player import Player
 
 http = urllib3.PoolManager()
 
-root = "http://192.168.1.142:6900"
+root = "http://0.0.0.0:6900"
 
-password = str(input("What would you like the password to be for your server? "))
-serverInfo = http.request("GET", f"{root}/createserver/{password}")
-serverInfo = json.loads(serverInfo.data.decode('utf-8'))
+if __name__ == "__main__":
+    #Pygame Things
+    pygame.init()
+    resolution = (1280, 720)
+    pygame.display.set_caption("Multiplayer Host")
+    window = pygame.display.set_mode(resolution)
+    clock = pygame.time.Clock()
+
+    #Server Things
+    password = str(input("What would you like the password to be for your server? "))
+    serverInfo = http.request("GET", f"{root}/createserver/{password}")
+    serverInfo = json.loads(serverInfo.data.decode('utf-8'))
+else:
+    exit()
+
+allSpritesList = pygame.sprite.Group()
+player = Player(pygame.math.Vector2(200, 200), window)
+allSpritesList.add(player)
+
+def SendData(json):
+    http.request("POST", f"{root}/SendHostInfo/{serverNo}/{password}/{localPass}", body=json.dumps(json).encode("utf-8"), headers={"Content-Type": "application/json"}).data.decode("utf-8")
+
+def RequestData():
+    result = http.request("GET", f"{root}/GetHostInfo/{serverNo}/{password}/{localPass}")
+    return json.loads(result.data.decode('utf-8'))
+    
+# ----------------------------[ New / Old ]---------------------------- #
+
 if serverInfo:
     localPass = serverInfo["yourPass"]
     serverNo = serverInfo["serverID"]
 
-    print("You've been given server number "+str(serverNo))
-    print("Your local password is "+localPass)
+    print(f"You've been given server number {str(serverNo)}")
+    print(f"Your local password is {localPass}")
 
+    frameCount = 0
     while True:
-        input("Recieve data")
+        window.fill((60, 80, 38))
 
-        result = http.request("GET", f"{root}/GetHostInfo/{serverNo}/{password}/{localPass}")
-        result = json.loads(result.data.decode('utf-8'))
-        if result:
-            print(result)
-        else:
-            print("No new data\n")
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                quit()
+
+        #Checks if the specified keys are pressed
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_w]:
+            player.MoveUp()
+        if keys[pygame.K_a]:
+            player.MoveLeft()
+        if keys[pygame.K_s]:
+            player.MoveDown()
+        if keys[pygame.K_d]:
+            player.MoveRight()
+
+        #Final stuff
+        if frameCount%10 == 0:
+            SendData([{"Type":"Player", "PlayerId":0, "Location":player.GetPos()}])
+
+        allSpritesList.draw(window)
+        pygame.display.update()
+        clock.tick(30)

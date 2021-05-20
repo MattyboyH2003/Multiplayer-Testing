@@ -16,6 +16,7 @@ class GameServer:
         self.password = password
         self.playerPasswords = [hostPass]
         self.infoList = []
+        self.currentState = {}
     
     def AddPlayer(self):
         password = CreatePass()
@@ -36,6 +37,9 @@ class GameServer:
         return self.numOfPlayers
     def GetPlayerPass(self, id):
         return self.playerPasswords[id]
+    
+    def SetCurrentState(self, state):
+        self.currentState = state
 
 def CreatePass():
     return "".join(random.choice(string.ascii_uppercase + string.digits) for _ in range(12))
@@ -58,11 +62,19 @@ def JoinServer(id, password):
     return jsonify(False)
 
 @app.route("/SendInfo/<server>/<serverPass>/<playerID>/<playerPass>", methods=["GET", "POST"])
-def GiveInfo(server, serverPass, playerID, playerPass):
+def GiveClientInfo(server, serverPass, playerID, playerPass):
     print(request.get_json())
     if serverList[int(server)].GetPass() == serverPass:
         if serverList[int(server)].GetPlayerPass(int(playerID)) == playerPass:
             serverList[int(server)].AddInfo(request.get_json())
+            return "Info recieved successfully :)"
+    return "fail"
+
+@app.route("/SendHostInfo/<server>/<serverPass>/<playerPass>", methods=["GET", "POST"])
+def HostGiveInfo(server, serverPass, playerPass):
+    if serverList[int(server)].GetPass() == serverPass:
+        if serverList[int(server)].GetPlayerPass(int(0)) == playerPass:
+            serverList[int(server)].SetCurrentState(request.get_json())
             return "Info recieved successfully :)"
     return "fail"
 

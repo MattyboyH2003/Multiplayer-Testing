@@ -1,10 +1,9 @@
-from threading import local
 import urllib3
 import json
 
 http = urllib3.PoolManager()
 
-root = "http://192.168.1.142:6900"
+root = "http://0.0.0.0:6900"
 
 serverID = input("What is the ID of the server you'd like to join? ")
 serverPass = input("What is the servers password? ")
