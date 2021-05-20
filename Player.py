@@ -48,4 +48,8 @@ class Player(pygame.sprite.Sprite):
         self.rect.center = self.location
     
     def GetPos(self):
-        return self.location
+        return (self.location[0], self.location[1])
+
+    def Setpos(self, x, y):
+        self.location = pygame.Vector2(x, y)
+        self.rect.center = self.location

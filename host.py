@@ -6,7 +6,8 @@ from Player import Player
 
 http = urllib3.PoolManager()
 
-root = "http://0.0.0.0:6900"
+with open("ip.txt") as f:
+    root = f.read()
 
 if __name__ == "__main__":
     #Pygame Things
@@ -27,8 +28,8 @@ allSpritesList = pygame.sprite.Group()
 player = Player(pygame.math.Vector2(200, 200), window)
 allSpritesList.add(player)
 
-def SendData(json):
-    http.request("POST", f"{root}/SendHostInfo/{serverNo}/{password}/{localPass}", body=json.dumps(json).encode("utf-8"), headers={"Content-Type": "application/json"}).data.decode("utf-8")
+def SendData(jsonData):
+    http.request("POST", f"{root}/SendHostInfo/{serverNo}/{password}/{localPass}", body=json.dumps(jsonData).encode("utf-8"), headers={"Content-Type": "application/json"}).data.decode("utf-8")
 
 def RequestData():
     result = http.request("GET", f"{root}/GetHostInfo/{serverNo}/{password}/{localPass}")
@@ -63,9 +64,9 @@ if serverInfo:
             player.MoveRight()
 
         #Final stuff
-        if frameCount%10 == 0:
-            SendData([{"Type":"Player", "PlayerId":0, "Location":player.GetPos()}])
+        SendData([{"Type":"Player", "PlayerId":0, "Location":player.GetPos()}])
 
+        frameCount += 1
         allSpritesList.draw(window)
         pygame.display.update()
         clock.tick(30)

@@ -37,6 +37,8 @@ class GameServer:
         return self.numOfPlayers
     def GetPlayerPass(self, id):
         return self.playerPasswords[id]
+    def GetCurrentState(self):
+        return self.currentState
     
     def SetCurrentState(self, state):
         self.currentState = state
@@ -84,5 +86,12 @@ def GetHostInfo(server, serverPass, playerPass):
         if serverList[int(server)].GetPlayerPass(0) == playerPass:
             return serverList[int(server)].RelayInfo()
 
+@app.route("/GetClientInfo/<server>/<serverPass>/<playerID>/<playerPass>")
+def GetClientInfo(server, serverPass, playerID, playerPass):
+    if serverList[int(server)].GetPass() == serverPass:
+        if serverList[int(server)].GetPlayerPass(int(playerID)) == playerPass:
+            return jsonify(serverList[int(server)].GetCurrentState())
+
+            
 if __name__ == "__main__":
     app.run(debug=True, port="6900", host="0.0.0.0")
