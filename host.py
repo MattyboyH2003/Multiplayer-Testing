@@ -34,8 +34,6 @@ def SendData(jsonData):
 def RequestData():
     result = http.request("GET", f"{root}/GetHostInfo/{serverNo}/{password}/{localPass}")
     return json.loads(result.data.decode('utf-8'))
-    
-# ----------------------------[ New / Old ]---------------------------- #
 
 if serverInfo:
     localPass = serverInfo["yourPass"]
