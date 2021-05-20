@@ -1,7 +1,7 @@
 import flask
 import string
 import random
-from flask import jsonify
+from flask import request, jsonify
 
 app = flask.Flask(__name__)
 
@@ -30,7 +30,6 @@ class GameServer:
         self.infoList = []
         return toReturn
         
-    
     def GetPass(self):
         return self.password
     def GetNumOfPlayers(self):
@@ -40,14 +39,6 @@ class GameServer:
 
 def CreatePass():
     return "".join(random.choice(string.ascii_uppercase + string.digits) for _ in range(12))
-
-@app.route("/send/<id>/<string>")
-def connect(id, string):
-    dataList[id] = string
-
-@app.route("/recieve/<id>")
-def recieve(id):
-    return jsonify({"Data":dataList[id]})
 
 @app.route("/createserver/<password>")
 def CreateServer(password):
@@ -66,11 +57,12 @@ def JoinServer(id, password):
         return jsonify(serverList[int(id)].AddPlayer())
     return jsonify(False)
 
-@app.route("/SendInfo/<server>/<serverPass>/<playerID>/<playerPass>/<info>")
-def GiveInfo(server, serverPass, playerID, playerPass, info):
+@app.route("/SendInfo/<server>/<serverPass>/<playerID>/<playerPass>", methods=["GET", "POST"])
+def GiveInfo(server, serverPass, playerID, playerPass):
+    print(request.get_json())
     if serverList[int(server)].GetPass() == serverPass:
         if serverList[int(server)].GetPlayerPass(int(playerID)) == playerPass:
-            serverList[int(server)].AddInfo(info)
+            serverList[int(server)].AddInfo(request.get_json())
             return "Info recieved successfully :)"
     return "fail"
 
