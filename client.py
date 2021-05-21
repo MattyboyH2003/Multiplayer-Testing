@@ -43,6 +43,7 @@ def RequestData():
 
 def RequestStartData():
     result = http.request("GET", f"{root}/GetClientInfo/{serverNo}/{password}/{localID}/{localPass}")
+
     return json.loads(result.data.decode('utf-8'))
 
 if result:
@@ -66,29 +67,20 @@ def Main():
     global newData
     frameCount = 0
     while True:
+        if frameCount % 1 == 0:
+            for item in newData:
+                if item["Type"] == "Player":
+                    created = False
+                    for sprite in allSpritesList:
+                        if isinstance(sprite, Player):
+                            if sprite.GetID() == item["PlayerID"]:
+                                created = True
+                                sprite.Setpos(*item["Location"])                
+                    if not created:
+                        allSpritesList.add(Player(item["Location"], item["PlayerID"], window))
+
         window.fill((60, 80, 38))
 
-        for item in newData:
-            if item["Type"] == "Player":
-                created = False
-                for sprite in allSpritesList:
-                    if isinstance(sprite, Player):
-                        if sprite.GetID() == item["PlayerID"]:
-                            created = True
-                            sprite.Setpos(*item["Location"])                
-                if not created:
-                    allSpritesList.add(Player(item["Location"], item["PlayerID"], window))
-
-        keys = pygame.key.get_pressed()
-        if keys[pygame.K_w]:
-            player.MoveUp()
-        if keys[pygame.K_a]:
-            player.MoveLeft()
-        if keys[pygame.K_s]:
-            player.MoveDown()
-        if keys[pygame.K_d]:
-            player.MoveRight()
-        
         for event in pygame.event.get():
             if event.type == pygame.QUIT: #When program closes
                 print("Lemme leave pwease")
@@ -99,12 +91,21 @@ def Main():
                 SendDisconnect()
                 quit()
 
-        #Final stuff
-        frameCount += 1
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_w]:
+            player.MoveUp()
+        if keys[pygame.K_a]:
+            player.MoveLeft()
+        if keys[pygame.K_s]:
+            player.MoveDown()
+        if keys[pygame.K_d]:
+            player.MoveRight()
 
+        #Final stuff
         t3 = Thread(target = SendData, args = [player.GetAllInfo()])
         t3.start()
 
+        frameCount += 1
         allSpritesList.draw(window)
         pygame.display.update()
         clock.tick(30)

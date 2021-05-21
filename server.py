@@ -82,8 +82,7 @@ def JoinServer(id, password):
     return jsonify(False)
 
 @app.route("/SendClientInfo/<server>/<serverPass>/<playerID>/<playerPass>", methods=["GET", "POST"])
-def GiveClientInfo(server, serverPass, playerID, playerPass):
-    print(request.get_json())
+def SendClientInfo(server, serverPass, playerID, playerPass):
     if serverList[int(server)].GetPass() == serverPass:
         if serverList[int(server)].GetPlayerPass(int(playerID)) == playerPass:
             serverList[int(server)].AddInfo(request.get_json())
@@ -117,4 +116,4 @@ def ClientDisconnect(server, serverPass, playerID, playerPass):
             serverList[int(server)].DisconnectPlayer(playerID)
 
 if __name__ == "__main__":
-    app.run(debug=True, port="6900", host="0.0.0.0")
+    app.run(debug=False, port="6900", host="0.0.0.0")
