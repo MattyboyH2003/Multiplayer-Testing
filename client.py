@@ -2,7 +2,7 @@ import urllib3
 import json
 import pygame
 
-from threading import Thread, local
+from threading import Thread
 from Player import Player
 
 http = urllib3.PoolManager()
@@ -91,8 +91,7 @@ def Main():
                     "PlayerID": localID
                     })
                 SendDisconnect()
-                #quit()
-                exit()
+                quit()
 
         keys = pygame.key.get_pressed()
         if keys[pygame.K_w]:
