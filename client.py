@@ -99,7 +99,6 @@ def Main():
 
         t3 = Thread(target = SendData, args = [player.GetAllInfo()])
         t3.start()
-        
 
         allSpritesList.draw(window)
         pygame.display.update()
