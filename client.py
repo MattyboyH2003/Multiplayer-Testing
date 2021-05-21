@@ -2,7 +2,7 @@ import urllib3
 import json
 import pygame
 
-from threading import Thread
+from threading import Thread, local
 from Player import Player
 
 http = urllib3.PoolManager()
@@ -73,9 +73,11 @@ def Main():
                     created = False
                     for sprite in allSpritesList:
                         if isinstance(sprite, Player):
-                            if sprite.GetID() == item["PlayerID"]:
+                            if sprite.GetID() == item["PlayerID"] and sprite.GetID() != localID:
                                 created = True
-                                sprite.Setpos(*item["Location"])                
+                                sprite.Setpos(*item["Location"])
+                            if sprite.GetID() == localID:
+                                created = True
                     if not created:
                         allSpritesList.add(Player(item["Location"], item["PlayerID"], window))
 
@@ -89,7 +91,8 @@ def Main():
                     "PlayerID": localID
                     })
                 SendDisconnect()
-                quit()
+                #quit()
+                exit()
 
         keys = pygame.key.get_pressed()
         if keys[pygame.K_w]:
