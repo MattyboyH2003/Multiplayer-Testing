@@ -25,7 +25,7 @@ else:
     exit()
 
 allSpritesList = pygame.sprite.Group()
-player = Player(pygame.math.Vector2(200, 200), window)
+player = Player(pygame.math.Vector2(200, 200), 0, window)
 allSpritesList.add(player)
 
 def SendData(jsonData):
@@ -44,6 +44,29 @@ if serverInfo:
 
     frameCount = 0
     while True:
+        
+        newData = RequestData()
+        if newData:
+            print(newData)
+        for item in newData:
+            if item["Type"] == "Connect":
+                allSpritesList.add(Player((200, 400), item["ID"], window))
+            if item["Type"] == "Disconnect":
+                print(f"Host Recieved Disconnect Request for player {item['PlayerID']}")
+                for sprite in allSpritesList:
+                    if isinstance(sprite, Player):
+                        if sprite.GetID() == item["PlayerID"]:
+                            sprite.kill()
+            if item["Type"] == "Player":
+                created = False
+                for sprite in allSpritesList:
+                    if isinstance(sprite, Player):
+                        if sprite.GetID() == item["PlayerID"]:
+                            created = True
+                            sprite.Setpos(*item["Location"])                
+                if not created:
+                    allSpritesList.add(Player(item["Location"], item["PlayerID"], window))
+
         window.fill((60, 80, 38))
 
         for event in pygame.event.get():
@@ -62,7 +85,12 @@ if serverInfo:
             player.MoveRight()
 
         #Final stuff
-        SendData([{"Type":"Player", "PlayerId":0, "Location":player.GetPos()}])
+        toSend = []
+        for item in allSpritesList:
+            if isinstance(item, Player):
+                toSend.append(item.GetAllInfo())
+        
+        SendData(toSend)
 
         frameCount += 1
         allSpritesList.draw(window)

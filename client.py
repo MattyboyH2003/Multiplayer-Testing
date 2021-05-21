@@ -1,6 +1,7 @@
 import urllib3
 import json
 import pygame
+import time
 
 from Player import Player
 
@@ -27,8 +28,12 @@ else:
     exit()
 
 allSpritesList = pygame.sprite.Group()
-player = Player(pygame.math.Vector2(200, 200), window)
-allSpritesList.add(player)
+
+def SendData(data):
+    http.request("POST", f"{root}/SendClientInfo/{serverNo}/{password}/{localID}/{localPass}", body=json.dumps(data).encode("utf-8"), headers={"Content-Type": "application/json"}).data.decode("utf-8")
+
+def SendDisconnect(id):
+    http.request("POST", f"{root}/ClientDisconnect/{serverNo}/{password}/{localID}/{localPass}")
 
 def RequestData():
     result = http.request("GET", f"{root}/GetClientInfo/{serverNo}/{password}/{localID}/{localPass}")
@@ -41,19 +46,56 @@ if result:
     print("Your local ID is "+str(localID))
     print("Your local password is "+str(localPass))
     frameCount = 0
+
+    # Create clients player
+    player = Player((200, 400), localID, window)
+    allSpritesList.add(player)
+
+    #Initial Request
+    newData = RequestData()
+    for item in newData:
+        if item["Type"] == "Player":
+            allSpritesList.add(Player(item["Location"], item["PlayerID"], window))
+
     while True:
         window.fill((60, 80, 38))
 
         newData = RequestData()
-        player.Setpos(*newData[0]["Location"])
+        for item in newData:
+            if item["Type"] == "Player":
+                created = False
+                for sprite in allSpritesList:
+                    if isinstance(sprite, Player):
+                        if sprite.GetID() == item["PlayerID"]:
+                            created = True
+                            sprite.Setpos(*item["Location"])                
+                if not created:
+                    allSpritesList.add(Player(item["Location"], item["PlayerID"], window))
 
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_w]:
+            player.MoveUp()
+        if keys[pygame.K_a]:
+            player.MoveLeft()
+        if keys[pygame.K_s]:
+            player.MoveDown()
+        if keys[pygame.K_d]:
+            player.MoveRight()
+        
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:
+            if event.type == pygame.QUIT: #When program closes
+                print("Lemme leave pwease")
+                SendData({
+                    "Type": "Disconnect",
+                    "PlayerID": localID
+                    })
+                SendDisconnect(localID)
                 quit()
 
         #Final stuff
-
         frameCount += 1
+
+        SendData(player.GetAllInfo())
 
         allSpritesList.draw(window)
         pygame.display.update()

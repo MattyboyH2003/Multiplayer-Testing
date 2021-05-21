@@ -2,11 +2,12 @@ import pygame
 import copy as _copy
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, location, window):
+    def __init__(self, location, Id, window):
         #Call the parent class (Sprite) constructor
         pygame.sprite.Sprite.__init__(self)    
         
         self.window = window
+        self.ID = Id
         self.sprite = "sprite.png"
 
         #Load the image
@@ -49,7 +50,17 @@ class Player(pygame.sprite.Sprite):
     
     def GetPos(self):
         return (self.location[0], self.location[1])
-
+        
     def Setpos(self, x, y):
         self.location = pygame.Vector2(x, y)
         self.rect.center = self.location
+
+    def GetID(self):
+        return self.ID
+
+    def GetAllInfo(self):
+        return {
+            "Type":"Player",
+            "Location":(self.location[0], self.location[1]),
+            "PlayerID":self.ID
+        }

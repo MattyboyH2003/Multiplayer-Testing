@@ -20,8 +20,26 @@ class GameServer:
     
     def AddPlayer(self):
         password = CreatePass()
+        added = False
+        counter = 0
+        for item in self.playerPasswords:
+            if item == None:
+                added = True
+                self.playerPasswords[counter] = password
+                id = counter
+                break
+            counter += 1
+            
+        if not added:
+            self.playerPasswords.append(password)
+            id = len(self.playerPasswords)-1
+
         self.playerPasswords.append(password)
-        return {"yourID":len(self.playerPasswords)-1, "yourPass":password}
+        self.infoList.append({"Type":"Connect", "ID":id})
+        return {"yourID":id, "yourPass":password}
+    
+    def DisconnectPlayer(self, id):
+        self.playerPasswords[int(id)] = None
 
     def AddInfo(self, info):
         self.infoList.append(info)
@@ -63,7 +81,7 @@ def JoinServer(id, password):
         return jsonify(serverList[int(id)].AddPlayer())
     return jsonify(False)
 
-@app.route("/SendInfo/<server>/<serverPass>/<playerID>/<playerPass>", methods=["GET", "POST"])
+@app.route("/SendClientInfo/<server>/<serverPass>/<playerID>/<playerPass>", methods=["GET", "POST"])
 def GiveClientInfo(server, serverPass, playerID, playerPass):
     print(request.get_json())
     if serverList[int(server)].GetPass() == serverPass:
@@ -92,6 +110,11 @@ def GetClientInfo(server, serverPass, playerID, playerPass):
         if serverList[int(server)].GetPlayerPass(int(playerID)) == playerPass:
             return jsonify(serverList[int(server)].GetCurrentState())
 
-            
+@app.route("/ClientDisconnect/<server>/<serverPass>/<playerID>/<playerPass>")
+def ClientDisconnect(server, serverPass, playerID, playerPass):
+    if serverList[int(server)].GetPass() == serverPass:
+        if serverList[int(server)].GetPlayerPass(playerID) == playerPass:
+            serverList[int(server)].DisconnectPlayer(playerID)
+
 if __name__ == "__main__":
     app.run(debug=True, port="6900", host="0.0.0.0")
