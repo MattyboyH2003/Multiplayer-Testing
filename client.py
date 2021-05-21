@@ -32,13 +32,19 @@ allSpritesList = pygame.sprite.Group()
 def SendData(data):
     http.request("POST", f"{root}/SendClientInfo/{serverNo}/{password}/{localID}/{localPass}", body=json.dumps(data).encode("utf-8"), headers={"Content-Type": "application/json"}).data.decode("utf-8")
 
-def SendDisconnect(id):
+def SendDisconnect():
     http.request("POST", f"{root}/ClientDisconnect/{serverNo}/{password}/{localID}/{localPass}")
 
 def RequestData():
+    global newData
+    while True:
+        result = http.request("GET", f"{root}/GetClientInfo/{serverNo}/{password}/{localID}/{localPass}")
+        newData = json.loads(result.data.decode('utf-8'))
+
+def RequestStartData():
     result = http.request("GET", f"{root}/GetClientInfo/{serverNo}/{password}/{localID}/{localPass}")
     return json.loads(result.data.decode('utf-8'))
-    
+
 if result:
     localPass = result["yourPass"]
     localID = result["yourID"]
@@ -51,7 +57,7 @@ if result:
     allSpritesList.add(player)
 
     #Initial Request
-    newData = RequestData()
+    newData = RequestStartData()
     for item in newData:
         if item["Type"] == "Player":
             allSpritesList.add(Player(item["Location"], item["PlayerID"], window))
@@ -86,12 +92,11 @@ def Main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT: #When program closes
                 print("Lemme leave pwease")
-                t3 = Thread(SendData(), args = [{
+                SendData({
                     "Type": "Disconnect",
                     "PlayerID": localID
-                    }])
-                t3.start()
-                SendDisconnect(localID)
+                    })
+                SendDisconnect()
                 quit()
 
         #Final stuff
