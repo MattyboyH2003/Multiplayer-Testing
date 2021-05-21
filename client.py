@@ -1,14 +1,14 @@
 import urllib3
 import json
 import pygame
-import time
 
+from threading import Thread
 from Player import Player
 
 http = urllib3.PoolManager()
 
-with open("ip.txt") as f:
-    root = f.read()
+#with open("ip.txt") as f:
+root = "62.171.143.217:6900" #f.read()
 
 if __name__ == "__main__":
     #Pygame Things
@@ -45,7 +45,6 @@ if result:
 
     print("Your local ID is "+str(localID))
     print("Your local password is "+str(localPass))
-    frameCount = 0
 
     # Create clients player
     player = Player((200, 400), localID, window)
@@ -57,10 +56,12 @@ if result:
         if item["Type"] == "Player":
             allSpritesList.add(Player(item["Location"], item["PlayerID"], window))
 
+def Main():
+    global newData
+    frameCount = 0
     while True:
         window.fill((60, 80, 38))
 
-        newData = RequestData()
         for item in newData:
             if item["Type"] == "Player":
                 created = False
@@ -85,24 +86,26 @@ if result:
         for event in pygame.event.get():
             if event.type == pygame.QUIT: #When program closes
                 print("Lemme leave pwease")
-                SendData({
+                t3 = Thread(SendData(), args = [{
                     "Type": "Disconnect",
                     "PlayerID": localID
-                    })
+                    }])
+                t3.start()
                 SendDisconnect(localID)
                 quit()
 
         #Final stuff
         frameCount += 1
 
-        SendData(player.GetAllInfo())
+        t3 = Thread(target = SendData, args = [player.GetAllInfo()])
+        t3.start()
+        
 
         allSpritesList.draw(window)
         pygame.display.update()
         clock.tick(30)
 
+t2 = Thread(target = RequestData)
 
-"""
-        msg = input("Message: ")
-        print(http.request("POST", f"{root}/SendInfo/{serverID}/{serverPass}/{localID}/{localPass}", body=json.dumps({"Player": localID, "Message": msg}).encode("utf-8"), headers={"Content-Type": "application/json"}).data.decode("utf-8"))
-"""
+t2.start()
+Main()
