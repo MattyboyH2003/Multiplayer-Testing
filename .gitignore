@@ -114,6 +114,9 @@ dmypy.json
 .pyre/
 
 # Pygame folder
+pygame/
 
 # My ip
 ip.txt
+
+.idea/
