@@ -213,7 +213,7 @@ def HostDisconnect(server, serverPass, playerPass):
         if serverList[int(server)].GetPlayerPass(0) == playerPass:
             serverList[int(server)].Shutdown()
             time.sleep(10)
-            serverList[int(server)] == None
+            serverList[int(server)] = None
             print(serverList)
 
 
