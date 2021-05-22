@@ -191,7 +191,7 @@ def GetClientInfo(server, serverPass, playerID, playerPass):
         if serverList[int(server)].GetPlayerPass(int(playerID)) == playerPass:
             return jsonify(serverList[int(server)].GetCurrentState())
 
-@app.route("/ClientDisconnect/<server>/<serverPass>/<playerID>/<playerPass>")
+@app.route("/ClientDisconnect/<server>/<serverPass>/<playerID>/<playerPass>", methods=["POST"])
 def ClientDisconnect(server, serverPass, playerID, playerPass):
     """
     Ran when `/ClientDisconnect/<server>/<serverPass>/<playerID>/<playerPass>` requested\n
@@ -202,7 +202,7 @@ def ClientDisconnect(server, serverPass, playerID, playerPass):
         if serverList[int(server)].GetPlayerPass(playerID) == playerPass:
             serverList[int(server)].DisconnectPlayer(playerID)
 
-@app.route("/HostDisconnect/<server>/<serverPass>/<playerPass>")
+@app.route("/HostDisconnect/<server>/<serverPass>/<playerPass>", methods=["POST"])
 def HostDisconnect(server, serverPass, playerPass):
     """
     Ran when `/HostDisconnect/<server>/<serverPass>/<playerPass>` requested\n
