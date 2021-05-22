@@ -44,7 +44,7 @@ if serverInfo["success"]:
 #Prints error of cant create a server
 else:
     print("Server creation unsuccessful, Reason:")
-    print(serverInfo["error"])
+    print(serverInfo["Error"])
     exit()
 
 
@@ -101,7 +101,7 @@ def Main():
                         
         for event in pygame.event.get():
             if event.type == pygame.QUIT: #Check if user is trying to exit the game
-                http.request("GET", f"{root}/HostDisconnect/{serverNo}/{password}/{localPass}")
+                http.request("POST", f"{root}/HostDisconnect/{serverNo}/{password}/{localPass}")
                 active = False
                 quit()
 

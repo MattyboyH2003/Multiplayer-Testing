@@ -214,6 +214,7 @@ def HostDisconnect(server, serverPass, playerPass):
             serverList[int(server)].Shutdown()
             time.sleep(10)
             serverList[int(server)] == None
+            print(serverList)
 
 
 ########################################################################################################
