@@ -1,3 +1,4 @@
+from typing import Type
 import flask
 import string
 import random
@@ -142,9 +143,7 @@ def JoinServer(id, password):
             return jsonify(serverList[int(id)].AddPlayer())
         else:
             return jsonify({"success":False, "Error":"Server Password Incorrect"})
-    except IndexError:
-        return jsonify({"success":False, "Error":"Server ID not accepted"})
-    except TypeError:
+    except IndexError or TypeError or ValueError:
         return jsonify({"success":False, "Error":"Server ID not accepted"})
 
 @app.route("/SendClientInfo/<server>/<serverPass>/<playerID>/<playerPass>", methods=["POST"])
@@ -214,7 +213,7 @@ def HostDisconnect(server, serverPass, playerPass):
             serverList[int(server)].Shutdown()
             time.sleep(10)
             serverList[int(server)] = None
-            print(serverList)
+            return "Successfully shut server down"
 
 
 ########################################################################################################

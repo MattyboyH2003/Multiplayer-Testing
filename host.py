@@ -100,8 +100,8 @@ def Main():
                         
         for event in pygame.event.get():
             if event.type == pygame.QUIT: #Check if user is trying to exit the game
-                http.request("POST", f"{root}/HostDisconnect/{serverNo}/{password}/{localPass}")
                 active = False
+                http.request("POST", f"{root}/HostDisconnect/{serverNo}/{password}/{localPass}")
                 quit()
 
         #Checks if the specified keys are pressed

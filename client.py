@@ -25,7 +25,11 @@ clock = pygame.time.Clock()
 http = urllib3.PoolManager()
 serverNo = input("What is the ID of the server you'd like to join? ")
 password = input("What is the servers password? ")
-result = http.request("GET", f"{root}/JoinServer/{serverNo}/{password}")
+if serverNo and password:
+    result = http.request("GET", f"{root}/JoinServer/{serverNo}/{password}")
+else:
+    print("Bad input")
+    quit()
 print(result.data.decode("utf-8"))
 result = json.loads(result.data.decode('utf-8'))
 
@@ -107,17 +111,18 @@ def Main():
                 if not created: #Incase a previous packet has been lost
                     allSpritesList.add(Player(item["Location"], item["PlayerID"], window))
             if item["Type"] == "Shutdown":
+                active = False
                 print("The server you were connected to has been shutdown by the host")
                 quit()
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT: #Check if user is trying to exit the game
+                active = False
                 SendData({
                     "Type": "Disconnect",
                     "PlayerID": localID
                     })
                 SendDisconnect()
-                active = False
                 quit()
 
         #Checks if the specified keys are pressed    
