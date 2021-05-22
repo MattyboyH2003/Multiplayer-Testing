@@ -9,6 +9,8 @@ from Player import Player
 #                                              - Setup -                                               #
 ########################################################################################################
 
+global active
+
 with open("ip.txt") as f: #Open root ip file
     root = f.read()
 
@@ -41,11 +43,6 @@ if result["success"]:
     player = Player((200, 400), localID, window)
     allSpritesList.add(player)
 
-    """    #Initial Request
-    newData = RequestStartData()
-    for item in newData:
-        if item["Type"] == "Player":
-            allSpritesList.add(Player(item["Location"], item["PlayerID"], window))"""
 #If not successfully joined server
 else:
     print("Unable to connect to server, Reason:")
@@ -74,8 +71,9 @@ def RequestData():
     Function ran forever requesting new data from the server for the client to use\n
     Requests data from `{root}/GetClientInfo/`
     """
+    global active
     global newData
-    while True:
+    while active:
         result = http.request("GET", f"{root}/GetClientInfo/{serverNo}/{password}/{localID}/{localPass}")
         newData = json.loads(result.data.decode('utf-8'))
 
@@ -91,6 +89,7 @@ def Main():
     """
     Main game loop to run the pygame window
     """
+    global active
     global newData #Variable containing all changes that need to be ran for this frame from clients
     while True:
         window.fill((60, 80, 38)) #Clears the screen
@@ -107,6 +106,9 @@ def Main():
                             created = True
                 if not created: #Incase a previous packet has been lost
                     allSpritesList.add(Player(item["Location"], item["PlayerID"], window))
+            if item["Type"] == "Shutdown":
+                print("The server you were connected to has been shutdown by the host")
+                quit()
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT: #Check if user is trying to exit the game
@@ -115,6 +117,7 @@ def Main():
                     "PlayerID": localID
                     })
                 SendDisconnect()
+                active = False
                 quit()
 
         #Checks if the specified keys are pressed    
@@ -142,6 +145,15 @@ def Main():
 ########################################################################################################
 
 #Starts running constant data updates
+active = True
+
+#Initial Request
+newData = RequestStartData()
+for item in newData:
+    if item["Type"] == "Player":
+        allSpritesList.add(Player(item["Location"], item["PlayerID"], window))
+
+
 t2 = Thread(target = RequestData)
 t2.start()
 

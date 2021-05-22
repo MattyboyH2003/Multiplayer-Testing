@@ -12,6 +12,9 @@ from Player import Player
 with open("ip.txt") as f: #Open root ip file
     root = f.read()
 
+global active
+active = True
+
 #Pygame Things
 pygame.init()
 resolution = (1280, 720)
@@ -62,11 +65,13 @@ def RequestData():
     Requests data from `{root}/GetHostInfo/`
     """
     global newData
-    while True:
+    global active
+    while active:
         result = http.request("GET", f"{root}/GetHostInfo/{serverNo}/{password}/{localPass}")
         newData = json.loads(result.data.decode('utf-8'))
 
 def Main():
+    global active
     """
     Main game loop to run the pygame window
     """
@@ -96,6 +101,8 @@ def Main():
                         
         for event in pygame.event.get():
             if event.type == pygame.QUIT: #Check if user is trying to exit the game
+                http.request("GET", f"{root}/HostDisconnect/{serverNo}/{password}/{localPass}")
+                active = False
                 quit()
 
         #Checks if the specified keys are pressed

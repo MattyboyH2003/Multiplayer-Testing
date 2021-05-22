@@ -1,6 +1,7 @@
 import flask
 import string
 import random
+import time
 from flask import request, jsonify
 
 ########################################################################################################
@@ -58,6 +59,12 @@ class GameServer:
         `id` is the ID of the client that is disconnecting
         """
         self.playerPasswords[int(id)] = None #Removes them from the users connected
+
+    def Shutdown(self):
+        """
+        Ran when the host wants to shutdown the server
+        """
+        self.currentState = [{"Type":"Shutdown"}]
 
     def AddInfo(self, info):
         """
@@ -118,7 +125,7 @@ def CreateServer(password):
         if i == None:
             hostPass = CreatePass()
             serverList[counter] = GameServer(password, hostPass)
-            return jsonify({"Success":True, "serverID":counter, "yourPass":hostPass})
+            return jsonify({"success":True, "serverID":counter, "yourPass":hostPass})
         counter += 1
     return jsonify({"success":False, "Error":"No Server Available"})
 
@@ -140,7 +147,7 @@ def JoinServer(id, password):
     except TypeError:
         return jsonify({"success":False, "Error":"Server ID not accepted"})
 
-@app.route("/SendClientInfo/<server>/<serverPass>/<playerID>/<playerPass>", methods=["GET", "POST"])
+@app.route("/SendClientInfo/<server>/<serverPass>/<playerID>/<playerPass>", methods=["POST"])
 def SendClientInfo(server, serverPass, playerID, playerPass):
     """
     Ran when `/SendClientInfo/<server>/<serverPass>/<playerID>/<playerPass>` requested\n
@@ -152,7 +159,7 @@ def SendClientInfo(server, serverPass, playerID, playerPass):
             return "Info recieved successfully :)"
     return "fail"
 
-@app.route("/SendHostInfo/<server>/<serverPass>/<playerPass>", methods=["GET", "POST"])
+@app.route("/SendHostInfo/<server>/<serverPass>/<playerPass>", methods=["POST"])
 def HostGiveInfo(server, serverPass, playerPass):
     """
     Ran when `/SendHostInfo/<server>/<serverPass>/<playerPass>` requested\n
@@ -189,11 +196,25 @@ def ClientDisconnect(server, serverPass, playerID, playerPass):
     """
     Ran when `/ClientDisconnect/<server>/<serverPass>/<playerID>/<playerPass>` requested\n
     Used by the client to disconnect from the server they're connected to\n
-    When recieved the server runs the `DisconnectPlayer` function to remove info on the client that wants to disconnect
+    When recieved the server runs the `GameServer.DisconnectPlayer` function to remove info on the client that wants to disconnect
     """
     if serverList[int(server)].GetPass() == serverPass:
         if serverList[int(server)].GetPlayerPass(playerID) == playerPass:
             serverList[int(server)].DisconnectPlayer(playerID)
+
+@app.route("/HostDisconnect/<server>/<serverPass>/<playerPass>")
+def HostDisconnect(server, serverPass, playerPass):
+    """
+    Ran when `/HostDisconnect/<server>/<serverPass>/<playerPass>` requested\n
+    Used by the host to disconnect and shut their server down\n
+    When recieved the server runs the `GameServer.Shutdown` function to shutdown the server
+    """
+    if serverList[int(server)].GetPass() == serverPass:
+        if serverList[int(server)].GetPlayerPass(0) == playerPass:
+            serverList[int(server)].Shutdown()
+            time.sleep(10)
+            serverList[int(server)] == None
+
 
 ########################################################################################################
 #                                          - Call Functions -                                          #
