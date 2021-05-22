@@ -158,7 +158,6 @@ for item in newData:
     if item["Type"] == "Player":
         allSpritesList.add(Player(item["Location"], item["PlayerID"], window))
 
-
 t2 = Thread(target = RequestData)
 t2.start()
 

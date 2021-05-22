@@ -200,6 +200,7 @@ def ClientDisconnect(server, serverPass, playerID, playerPass):
     if serverList[int(server)].GetPass() == serverPass:
         if serverList[int(server)].GetPlayerPass(playerID) == playerPass:
             serverList[int(server)].DisconnectPlayer(playerID)
+            return "Disconnect Successful"
 
 @app.route("/HostDisconnect/<server>/<serverPass>/<playerPass>", methods=["POST"])
 def HostDisconnect(server, serverPass, playerPass):
