@@ -4,6 +4,7 @@ import pygame
 
 from threading import Thread
 from Player import Player
+from Image import Image
 
 ########################################################################################################
 #                                              - Setup -                                               #
@@ -110,6 +111,8 @@ def Main():
                             created = True
                 if not created: #Incase a previous packet has been lost
                     allSpritesList.add(Player(item["Location"], item["PlayerID"], window))
+            if item["Type"] == "Bullet":
+                allSpritesList.add(Image("Bullet.png", item["Location"], colourKey=(0, 0, 0)))
             if item["Type"] == "Shutdown":
                 active = False
                 print("The server you were connected to has been shutdown by the host")

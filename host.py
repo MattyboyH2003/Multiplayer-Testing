@@ -1,9 +1,11 @@
 import urllib3
 import json
+import math
 import pygame
 from threading import Thread
 
 from Player import Player
+from Player import HostBullet as Bullet
 
 ########################################################################################################
 #                                              - Setup -                                               #
@@ -97,6 +99,12 @@ def Main():
                             sprite.Setpos(*item["Location"])                
                 if not created: #Incase a previous packet has been lost
                     allSpritesList.add(Player(item["Location"], item["PlayerID"], window))
+            if item["Type"] == "Bullet":
+                for sprite in allSpritesList:
+                    if isinstance(sprite, Player):
+                        if sprite.GetID() == item["ParentId"]:
+                            parent = sprite
+                allSpritesList.add(Bullet(item["Location"], item["Movement"], parent, window))
                         
         for event in pygame.event.get():
             if event.type == pygame.QUIT: #Check if user is trying to exit the game
@@ -114,13 +122,22 @@ def Main():
             player.MoveDown()
         if keys[pygame.K_d]:
             player.MoveRight()
+        if keys[pygame.K_SPACE]:
+            bullet = player.Shoot()
+            if isinstance(bullet, Bullet):
+                allSpritesList.add(bullet)
+
+        for item in allSpritesList:
+            if isinstance(item, Bullet):
+                item.Move()
 
         #Final stuff
         toSend = []
         for item in allSpritesList: #Runs through all sprites that exist on host end
-            if isinstance(item, Player): #If they are an instance of Player adds that instances information to the list of info to be sent
+            if isinstance(item, Player) or isinstance(item, Bullet): #If they are an instance of Player adds that instances information to the list of info to be sent
                 toSend.append(item.GetAllInfo())
-        
+
+
         #Starts a concurrent SendData to send the info to the server while the game still runs
         t3 = Thread(target=SendData, args=[toSend])
         t3.start()
