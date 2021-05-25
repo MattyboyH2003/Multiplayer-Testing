@@ -78,6 +78,7 @@ class Player(pygame.sprite.Sprite): #Player class for creating players
             return bullet
         return None
     
+    @staticmethod
     def CalculateBulletMovement(mousePos, location):
         xDiff = location[0] - mousePos[0]
         yDiff = location[1] - mousePos[1]
@@ -148,7 +149,7 @@ class Player(pygame.sprite.Sprite): #Player class for creating players
         self.location = pygame.Vector2(x, y)
         self.rect.center = self.location
 
-class HostBullet(pygame.sprite.Sprite):
+class Bullet(pygame.sprite.Sprite):
     def __init__(self, location, movement, parent, window):
 
         # Call the parent class (Sprite) constructor

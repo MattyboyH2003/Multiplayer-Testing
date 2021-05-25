@@ -1,11 +1,10 @@
 import urllib3
 import json
-import math
 import pygame
 from threading import Thread
 
 from Player import Player
-from Player import HostBullet as Bullet
+from Player import Bullet
 
 ########################################################################################################
 #                                              - Setup -                                               #
@@ -81,6 +80,9 @@ def Main():
     while True:
         window.fill((60, 80, 38)) #Clears the screen
 
+        if newData:
+            print(newData)
+
         for item in newData: #Checks all new peices of data it needs to process
             if item["Type"] == "Connect": #Checks if a new user has connected
                 allSpritesList.add(Player((200, 400), item["ID"], window))
@@ -104,7 +106,8 @@ def Main():
                     if isinstance(sprite, Player):
                         if sprite.GetID() == item["ParentId"]:
                             parent = sprite
-                allSpritesList.add(Bullet(item["Location"], item["Movement"], parent, window))
+                allSpritesList.add(Bullet(pygame.math.Vector2(item["Location"][0], item["Location"][1]), item["Movement"], parent, window))
+                print("Bullet Spawned")
                         
         for event in pygame.event.get():
             if event.type == pygame.QUIT: #Check if user is trying to exit the game
