@@ -1,16 +1,17 @@
 import urllib3
 import json
+import copy
+import time
 import pygame
 from threading import Thread
 
-from Player import Player
-from Player import Bullet
+from Player import Player, Bullet
 
 ########################################################################################################
 #                                              - Setup -                                               #
 ########################################################################################################
 
-with open("ip.txt") as f: #Open root ip file
+with open("ip.txt") as f: #File contains the ip of the server you want to host games on
     root = f.read()
 
 global active
@@ -71,17 +72,23 @@ def RequestData():
         newData = json.loads(result.data.decode('utf-8'))
 
 def Main():
-    global active
     """
     Main game loop to run the pygame window
     """
+    global active #Variable that says if the server is active or not. Tells RequestData when to stop
     global newData #Variable containing all changes that need to be ran for this frame from clients
     
     while True:
         window.fill((60, 80, 38)) #Clears the screen
+        toSend = [] #Clears the toSend List
 
-        if newData:
-            print(newData)
+        newFrame = False
+        for item in newData:
+            if item["Type"] == "Bullet":
+                if not newFrame:
+                    newFrame = True
+                    print("New Frame:")
+                print("Bullet Requests")
 
         for item in newData: #Checks all new peices of data it needs to process
             if item["Type"] == "Connect": #Checks if a new user has connected
@@ -92,6 +99,7 @@ def Main():
                     if isinstance(sprite, Player):
                         if sprite.GetID() == item["PlayerID"]:
                             sprite.kill()
+            
             if item["Type"] == "Player": #Checks if its an update on a player instance
                 created = False
                 for sprite in allSpritesList:
@@ -101,33 +109,34 @@ def Main():
                             sprite.Setpos(*item["Location"])                
                 if not created: #Incase a previous packet has been lost
                     allSpritesList.add(Player(item["Location"], item["PlayerID"], window))
-            if item["Type"] == "Bullet":
+            if item["Type"] == "Bullet": #Checks if its a bullet needing spawning
                 for sprite in allSpritesList:
                     if isinstance(sprite, Player):
                         if sprite.GetID() == item["ParentId"]:
                             parent = sprite
                 allSpritesList.add(Bullet(pygame.math.Vector2(item["Location"][0], item["Location"][1]), item["Movement"], parent, window))
-                print("Bullet Spawned")
-                        
+
+        newData = []
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT: #Check if user is trying to exit the game
                 active = False
-                http.request("POST", f"{root}/HostDisconnect/{serverNo}/{password}/{localPass}")
+                http.request("POST", f"{root}/HostDisconnect/{serverNo}/{password}/{localPass}") #Tells the server that the host is wanting to shut the game down
                 quit()
 
         #Checks if the specified keys are pressed
         keys = pygame.key.get_pressed()
-        if keys[pygame.K_w]:
+        if keys[pygame.K_w]: #Move player up (w)
             player.MoveUp()
-        if keys[pygame.K_a]:
+        if keys[pygame.K_a]: #Move player left (a)
             player.MoveLeft()
-        if keys[pygame.K_s]:
+        if keys[pygame.K_s]: #Move player down (s)
             player.MoveDown()
-        if keys[pygame.K_d]:
+        if keys[pygame.K_d]: #Move player right (d)
             player.MoveRight()
-        if keys[pygame.K_SPACE]:
+        if keys[pygame.K_SPACE]: #Make player shoot (space)
             bullet = player.Shoot()
-            if isinstance(bullet, Bullet):
+            if isinstance(bullet, Bullet): #Checks if a bullet has been created or not
                 allSpritesList.add(bullet)
 
         for item in allSpritesList:
@@ -135,14 +144,12 @@ def Main():
                 item.Move()
 
         #Final stuff
-        toSend = []
         for item in allSpritesList: #Runs through all sprites that exist on host end
             if isinstance(item, Player) or isinstance(item, Bullet): #If they are an instance of Player adds that instances information to the list of info to be sent
                 toSend.append(item.GetAllInfo())
 
-
         #Starts a concurrent SendData to send the info to the server while the game still runs
-        t3 = Thread(target=SendData, args=[toSend])
+        t3 = Thread(target=SendData, args=[copy.deepcopy(toSend)])
         t3.start()
 
         allSpritesList.draw(window)

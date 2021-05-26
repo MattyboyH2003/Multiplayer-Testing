@@ -150,7 +150,8 @@ def Main():
             if pygame.time.get_ticks() - lastShotTime > 1000:
                 lastShotTime = pygame.time.get_ticks()
                 movement = player.CalculateBulletMovement(pygame.mouse.get_pos(), player.GetPos())
-                SendData({"Type":"Bullet", "Location":player.GetPos(), "ParentId":localID, "Movement":(movement[0], movement[1])})
+                bulletThread = Thread(target=SendData, args=[{"Type":"Bullet", "Location":player.GetPos(), "ParentId":localID, "Movement":(movement[0], movement[1])}])
+                bulletThread.start()
 
 
         #Final stuff
